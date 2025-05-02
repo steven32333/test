@@ -4,7 +4,7 @@ const gun = Gun({
 });
 
 // 遊戲狀態
-const gameState = {
+let gameState = {
     currentPlayer: null,
     board: Array(9).fill(''),
     players: [],
@@ -20,7 +20,7 @@ const gameStatus = document.getElementById('game-status');
 const cells = document.querySelectorAll('.cell');
 
 // GUN 資料節點
-const gameData = gun.get('tic-tac-toe');
+const gameData = gun.get('tic-tac-toe-' + Date.now()); // 使用時間戳建立唯一遊戲實例
 
 // 勝利條件
 const winPatterns = [
@@ -108,15 +108,37 @@ function disableBoard() {
 
 // 重置遊戲
 resetGameButton.addEventListener('click', () => {
+    // 清除 GUN.js 資料
     gameData.get('moves').put(null);
-    gameState.board = Array(9).fill('');
+    gameData.get('players').put(null);
+
+    // 重置遊戲狀態
+    gameState = {
+        currentPlayer: gameState.currentPlayer, // 保留當前玩家名稱
+        board: Array(9).fill(''),
+        players: [],
+        gameStarted: false
+    };
+
+    // 重置 UI
     cells.forEach(cell => {
         cell.textContent = '';
         cell.className = 'cell';
         cell.style.pointerEvents = 'auto';
     });
-    gameState.gameStarted = false;
-    updateGameStatus();
+
+    // 重新啟用輸入
+    playerNameInput.disabled = false;
+    joinGameButton.disabled = false;
+    gameBoard.classList.add('hidden');
+    resetGameButton.classList.add('hidden');
+
+    // 更新狀態顯示
+    gameStatus.textContent = '請輸入您的名字開始新遊戲';
+
+    // 重新連接到新的遊戲實例
+    const newGameData = gun.get('tic-tac-toe-' + Date.now());
+    window.location.reload(); // 重新載入頁面以確保完全重置
 });
 
 // 處理玩家點擊
